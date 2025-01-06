@@ -1,0 +1,17 @@
+Router(config)#ipv6 unicast-routing 
+Router(config)#int g0/0
+Router(config-if)#ipv6 address 2001:db8:acad:1::1/64
+Router(config-if)#ipv6 address FE80::1 Link-local 
+Router(config-if)#no shutdown 
+Router(config)#ipv6 dhcp pool veli
+Router(config-dhcpv6)#address prefix 2001:2002:2003:2023::/64 lifetime 172800 86400
+
+Router(config)#int g0/0
+Router(config-if)#ipv6 dhcp server veli
+Router(config-if)#ipv6 nd managed-config-flag 
+Router(config-if)#ipv6 nd prefix default no-autoconfig
+
+Router(config)#ipv6 unicast-routing 
+Router(config)#int g0/0
+Router(config-if)#ipv6 address dhcp 
+Router(config-if)#no shutdown 

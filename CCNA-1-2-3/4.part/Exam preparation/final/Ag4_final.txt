@@ -1,0 +1,243 @@
+################################################################################ R0 ##############################################################################################
+
+!----------------IP AYARLARI
+
+en
+
+Conf t
+
+int g0/0
+ip address 10.0.40.1 255.255.255.0
+no sh
+exit
+
+
+int g0/1
+ip address 10.0.30.2 255.255.255.0
+no sh
+exit
+
+
+int g0/2
+ip address 10.0.60.1 255.255.255.252
+no sh
+exit
+
+!----------------OSPF AYARLARI
+
+router ospf 10
+network 10.0.40.0 0.0.0.255 area 0
+network 10.0.30.0 0.0.0.255 area 0
+network 10.0.60.0 0.0.0.3 area 0
+exit
+
+!----------------R0 ÇIKIŞ ROUTER OSPF
+
+ip route 0.0.0.0 0.0.0.0 g0/2
+router ospf 10
+default-information originate
+exit
+
+!----------------GEREKSİZ OSPF KAPATMA
+router ospf 10
+passive-interface GigabitEthernet0/2
+exit
+
+!----------------PAT
+
+
+! ACL 10'u oluşturun
+access-list 10 permit 10.0.30.0 0.0.0.255
+access-list 10 permit 10.0.40.0 0.0.0.255
+
+! NAT havuzunu oluşturun
+ip nat pool TEST 10.0.60.2 10.0.60.3 netmask 255.255.255.248
+
+! NAT overload yapılandırması
+ip nat inside source list 10 pool TEST overload
+
+! İç arayüzleri yapılandırın
+interface GigabitEthernet0/0
+ip nat inside
+exit
+
+interface GigabitEthernet0/1
+ip nat inside
+exit
+
+! Dış arayüzü yapılandırın
+interface GigabitEthernet0/2
+ip nat outside
+exit
+
+
+
+
+################################################################################ R1 ##############################################################################################
+
+!----------------IP AYARLARI
+
+en
+
+Conf t
+
+int g0/0
+ip address 10.0.20.1 255.255.255.0
+no sh
+exit
+
+int g0/1
+ip address 10.0.30.1 255.255.255.0
+no sh
+exit
+
+
+int g0/2
+ip address 10.0.10.1 255.255.255.0
+no sh
+exit
+
+!----------------OSPF AYARLARI
+
+router ospf 10
+network 10.0.20.0 0.0.0.255 area 0
+network 10.0.30.0 0.0.0.255 area 0
+network 10.0.10.0 0.0.0.255 area 0
+
+
+
+!----------------GEREKSİZ OSPF KAPATMA
+router ospf 10
+passive-interface GigabitEthernet0/0
+passive-interface GigabitEthernet0/2
+exit
+
+!----------------ACL2 LAN1 VE LAN 2
+
+! LAN1 için ACL 155
+access-list 155 permit tcp 10.0.10.0 0.0.0.255 host 10.0.50.50 eq www
+access-list 155 permit tcp 10.0.10.0 0.0.0.255 host 10.0.50.50 eq 443
+access-list 155 deny ip 10.0.10.0 0.0.0.255 host 10.0.50.50
+access-list 155 permit ip any any
+
+! LAN2 için ACL 160
+
+access-list 160 deny tcp 10.0.20.0 0.0.0.255 host 10.0.50.50 eq www
+access-list 160 deny tcp 10.0.20.0 0.0.0.255 host 10.0.50.50 eq 443
+access-list 160 permit ip any any
+
+
+
+
+! LAN1 arayüzüne ACL 155'i uygulama
+interface GigabitEthernet0/2
+ip access-group 155 in
+interface GigabitEthernet0/0
+ip access-group 160 in
+
+
+
+
+
+################################################################################ R2 ##############################################################################################
+
+!----------------IP AYARLARI
+
+en
+
+Conf t
+
+int g0/0
+ip address 10.0.50.1 255.255.255.0
+no sh
+
+int g0/1
+ip address 10.0.40.2 255.255.255.0
+no sh
+
+!----------------OSPF AYARLARI
+
+router ospf 10
+network 10.0.50.0 0.0.0.255 area 0
+network 10.0.40.0 0.0.0.255 area 0
+
+
+
+!----------------GEREKSİZ OSPF KAPATMA
+router ospf 10
+passive-interface GigabitEthernet0/0
+exit
+
+!---------------- ACL 1 LAN 2 PC1 TELNET
+
+username Admin secret class
+ip access-list standard ADMIN-HOST
+permit 10.0.20.10
+exit
+line vty 0 4
+access-class ADMIN-HOST in
+login local
+transport input telnet
+exit
+
+
+
+!---------------- NAT
+
+! Statik NAT kuralını oluşturun
+ip nat inside source static 10.0.50.50 10.0.40.22
+
+! Dış arayüze NAT uygulayın
+interface GigabitEthernet0/1
+ip nat outside
+exit
+
+! İç arayüze NAT uygulayın
+interface GigabitEthernet0/0
+ip nat inside
+exit
+
+
+
+
+
+
+!############################## show komutları  #############################
+
+show ip nat translations
+sh ip route connected 
+show ip route
+show ip int brif
+show run
+
+
+R0
+!----------------------EXTRA İNTERFACE İLE YAPMA
+int g0/0
+ip ospf 10 are 0
+int g0/1
+ip ospf 10 are 0
+int g0/2
+ip ospf 10 are 0
+
+R1
+
+!----------------------EXTRA İNTERFACE İLE YAPMA
+int g0/0
+ip ospf 10 are 0
+int g0/1
+ip ospf 10 are 0
+int g0/2
+ip ospf 10 are 0
+
+R2
+
+!----------------------EXTRA İNTERFACE İLE YAPMA
+int g0/0
+ip ospf 10 are 0
+int g0/1
+ip ospf 10 are 0
+
+
+
+

@@ -1,0 +1,81 @@
+router ospf 10
+router-id 1.1.1.1
+network 10.1.1.0 0.0.0.3 are 0
+ip ospf 10 are 0
+
+
+passive-interface g0/0/0
+
+
+dr ve br seciminde loopback ip kullanılır 
+
+
+
+int g0/0
+ip ospf priority 200
+clear ip ospf process   //enable
+
+ip ospf hello-interval 20
+ip ospf dead-interval 80
+
+
+router ospf 1
+ip route 0.0.0.0 0.0.0.0 Serial0/1/0
+default-information originate
+
+show ip interface brief
+
+show ip route
+
+show ip route ospf
+
+show ip ospf neighbor     // dr bdr kontrol
+
+show ip ospf interface    // hellonun ve dead ın varsayılanını öğrenme
+
+show ip protocols
+
+sh sh ip route connected  // connected olan bağlantıları gör
+
+
+router ospf 10
+auto-cost reference-bandwidth  1000 
+
+int g0/0
+bandwidth 64
+ip ospf cost 50
+
+30.0.0.0 networkünün 50.0.0.0 networküne ulaşamaması için;
+
+Router1
+Router(config)#access-list 10 deny 30.0.0.0 0.255.255.255
+Router(config)#access-list 10 permit any
+Router(config)#interface gigabitEthernet 0/0
+Router(config-if)#ip access-group 10 out
+
+sadece PC2'den Router0’a TELNET bağlantısı kurulabilmesi;
+
+Router0
+Router(config)#ip access-list standard TELNETPC2
+Router(config-std-nacl)#permit 10.0.0.3
+Router(config-std-nacl)#exit
+Router(config)#line vty 0 15
+Router(config-line)#access-class TELNETPC2 in
+
+20.0.0.0 ağının 10.0.0.2'e giden ping paketlerini engelleme ve herhangi bir web sitesine HTTP ile erişimini engelleme;
+
+Router0
+Router(config)#ip access-list extended ICMPDENY
+Router(config-ext-nacl)#deny icmp 20.0.0.0 0.255.255.255 host 10.0.0.2
+Router(config-ext-nacl)#deny tcp 20.0.0.0 0.255.255.255 any eq www
+Router(config-ext-nacl)#permit ip any any
+Router(config-ext-nacl)#exit
+Router(config)#interface gigabitEthernet 0/1
+Router(config-if)#ip access-group ICMPDENY in
+
+access-list 120 deny tcp 10.0.4.0 0.0.0.255 host 10.0.0.10 eq www
+access-list 120 deny tcp 10.0.4.0 0.0.0.255 host 10.0.0.10 eq 443
+access-list 120 permit ip any any
+
+
+

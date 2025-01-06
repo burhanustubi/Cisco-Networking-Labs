@@ -1,0 +1,201 @@
+!R0
+en 
+conf t
+router ospf 29
+int g0/0
+ip ospf 29 are 0
+int g0/1
+ip ospf 29 are 0
+int s0/0/0
+ip ospf 29 are 0
+int s0/0/1
+ip ospf 29 are 0
+exit
+router ospf 29
+passive-interface GigabitEthernet0/1
+exit
+int s0/0/0
+ip ospf cost 120
+int s0/0/1
+ip ospf cost 120
+exit
+int G0/0
+ip ospf hello-interval 5
+ip ospf dead-interval 20
+exit
+router ospf 29
+auto-cost reference-bandwidth 10000
+exit
+access-list 129 permit tcp 192.168.2.0 0.0.0.255 host 192.168.1.10 eq 80
+access-list 129 permit tcp 192.168.2.0 0.0.0.255 host 192.168.1.10 eq 443
+access-list 129 deny ip 192.168.2.0 0.0.0.255 any
+access-list 129 deny ip any host 192.168.1.10
+
+interface GigabitEthernet0/0
+ip access-group 129 out
+exit
+
+#######################################################################################
+
+!R1
+en 
+conf t
+router ospf 29
+int g0/0
+ip ospf 29 are 0
+int g0/1
+ip ospf 29 are 0
+int s0/0/0
+ip ospf 29 are 0
+int s0/0/1
+ip ospf 29 are 0
+exit
+router ospf 29
+passive-interface GigabitEthernet0/1
+int s0/0/0
+ip ospf cost 120
+int s0/0/1
+ip ospf cost 120
+exit
+int G0/0
+ip ospf hello-interval 5
+ip ospf dead-interval 20
+exit
+router ospf 29
+auto-cost reference-bandwidth 10000
+exit
+ip access-list extended GUBYO
+deny tcp 192.168.3.0 0.0.0.255 host 192.168.4.10 eq 21
+permit ip 192.168.3.0 0.0.0.255 host 192.168.4.10
+permit icmp any host 192.168.4.10 echo
+deny ip any host 192.168.4.10
+
+interface GigabitEthernet0/0
+ip access-group GUBYO out
+exit
+#######################################################################################
+
+!R2
+en 
+conf t
+router ospf 29
+int g0/0
+ip ospf 29 are 0
+int s0/0/0
+ip ospf 29 are 0
+int s0/0/1
+ip ospf 29 are 0
+exit
+int s0/0/0
+ip ospf cost 120
+int s0/0/1
+ip ospf cost 120
+exit
+int G0/0
+ip ospf hello-interval 5
+ip ospf dead-interval 20
+exit
+router ospf 29
+auto-cost reference-bandwidth 10000
+exit
+ip route 0.0.0.0 0.0.0.0 g0/0
+router ospf 29
+default-information originate
+exit
+
+#######################################################################################
+
+!R3
+
+en 
+conf t
+router ospf 29
+network 10.0.2.0 0.0.0.255 area 0
+network 192.168.4.0 0.0.0.255 area 0
+exit
+router ospf 29
+passive-interface GigabitEthernet0/1
+exit
+int G0/0
+ip ospf hello-interval 5
+ip ospf dead-interval 20
+exit
+router ospf 29
+auto-cost reference-bandwidth 10000
+int G0/0
+ip ospf priority 5
+exit
+
+#######################################################################################
+
+!R4
+
+en 
+conf t
+router ospf 29
+network 10.0.1.0 0.0.0.255 area 0
+network 192.168.1.0 0.0.0.255 area 0
+exit
+router ospf 29
+passive-interface GigabitEthernet0/1
+exit
+int G0/0
+ip ospf hello-interval 5
+ip ospf dead-interval 20
+exit
+router ospf 29
+auto-cost reference-bandwidth 10000
+exit
+int G0/0
+ip ospf priority 5
+exit
+
+#######################################################################################
+
+!R5
+en 
+conf t
+router ospf 29
+network 10.0.3.0 0.0.0.255 area 0
+network 192.168.5.0 0.0.0.255 area 0
+exit
+router ospf 29
+passive-interface GigabitEthernet0/1
+exit
+int G0/0
+ip ospf hello-interval 5
+ip ospf dead-interval 20
+exit
+router ospf 29
+auto-cost reference-bandwidth 10000
+exit
+int G0/0
+ip ospf priority 5
+exit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
